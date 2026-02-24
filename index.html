@@ -1,0 +1,442 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Grille Suivi AESH - Version Professionnelle</title>
+    <style>
+        @page { size: A4; margin: 8mm; }
+        @media print {
+            .no-print { display: none !important; }
+            .variant { display: none; }
+            .variant.active { display: block; }
+            .page-container { box-shadow: none; margin: 0; border: none; padding: 0; }
+            .page-break { page-break-before: always; }
+        }
+
+        body { 
+            font-family: 'Segoe UI', 'Roboto', Arial, sans-serif; 
+            font-size: 8pt; 
+            line-height: 1.2; 
+            color: #2c3e50; 
+            background: #e8ecf1;
+            margin: 0; 
+        }
+        
+        /* Navigation Professionnelle */
+        .nav-ribbon { 
+            background: #667eea;
+            padding: 15px; 
+            position: sticky; 
+            top: 0; 
+            z-index: 1000; 
+            text-align: center; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15); 
+        }
+        .nav-group { 
+            display: inline-block; 
+            margin: 0 10px; 
+            padding: 10px 15px; 
+            border-radius: 10px; 
+            background: rgba(255,255,255,0.15); 
+            border: 1px solid rgba(255,255,255,0.3);
+            backdrop-filter: blur(10px);
+        }
+        .group-label { 
+            display: block; 
+            color: #ffffff; 
+            font-size: 9pt; 
+            font-weight: 700; 
+            margin-bottom: 8px; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px;
+        }
+        
+        .nav-btn { 
+            background: #ffffff; 
+            color: #667eea; 
+            border: none; 
+            padding: 8px 16px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            transition: all 0.3s ease; 
+            font-weight: 600; 
+            margin: 3px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            font-size: 8.5pt;
+        }
+        .nav-btn.active { 
+            background: #f5576c;
+            color: #ffffff; 
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .nav-btn:hover { 
+            background: #f8f9fa;
+            transform: translateY(-1px);
+        }
+
+        .page-container { 
+            background: white; 
+            width: 194mm; 
+            margin: 15px auto; 
+            padding: 10mm; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            border-radius: 8px;
+        }
+        .variant { display: none; }
+        .variant.active { display: block; }
+
+        /* Titres Professionnels */
+        h1 { 
+            text-align: center; 
+            font-size: 17pt; 
+            background: #667eea;
+            color: white; 
+            margin: -10mm -10mm 15px -10mm; 
+            padding: 15px; 
+            border-radius: 8px 8px 0 0;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .dev-line { 
+            text-align: center; 
+            font-size: 7.5pt; 
+            color: #7f8c8d; 
+            margin: -5px 0 20px 0; 
+            font-weight: 500;
+            font-style: italic; 
+        }
+
+        /* Couleurs différentes pour chaque domaine */
+        .domain-header { 
+            color: white; 
+            font-weight: 700; 
+            text-align: left; 
+            padding: 8px 15px; 
+            text-transform: uppercase; 
+            font-size: 9pt; 
+            border-radius: 6px; 
+            margin-top: 2px;
+            letter-spacing: 0.3px;
+        }
+        
+        .domain-social { background: #4facfe; }
+        .domain-auton { background: #43e97b; }
+        .domain-envir { background: #fa709a; }
+        .domain-comm { background: #30cfd0; }
+        .domain-emot { background: #fed6e3; color: #2c3e50 !important; }
+        .domain-peda { background: #ff9a56; }
+        
+        .sub-domain-header { 
+            background: #fcb69f;
+            color: #2c3e50; 
+            padding: 6px 15px; 
+            font-weight: 600; 
+            font-size: 8.5pt; 
+            border-radius: 4px;
+        }
+        
+        table { 
+            width: 100%; 
+            border-collapse: separate; 
+            border-spacing: 0; 
+            margin-bottom: 12px; 
+            table-layout: fixed; 
+            border: 1px solid #e0e0e0; 
+            border-radius: 6px; 
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        th, td { 
+            border: 1px solid #f0f0f0; 
+            padding: 6px 8px; 
+            overflow: hidden; 
+            text-overflow: ellipsis;
+        }
+        th { 
+            background: #e9ecef;
+            color: #495057; 
+            font-size: 7.5pt; 
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        
+        .col-obs { 
+            width: auto; 
+            white-space: normal; 
+            color: #2c3e50; 
+            font-weight: 500;
+            line-height: 1.3;
+        }
+        .col-check { 
+            width: 35px !important; 
+            max-width: 35px !important;
+            min-width: 35px !important;
+            text-align: center; 
+            background: #fafbfc;
+            padding: 4px 2px !important;
+            vertical-align: middle;
+        }
+        
+        .checkbox-cell { 
+            width: 16px; 
+            height: 16px; 
+            border: 2px solid #495057; 
+            display: inline-block; 
+            background: white; 
+            border-radius: 3px;
+            margin: 0 auto;
+        }
+        .col-notes { 
+            width: auto; 
+            background: #ffffff;
+            min-width: 100px;
+        }
+
+        /* Grille d'informations */
+        .info-grid { 
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px; 
+            background: #ffecd2;
+            border: 2px solid #ff9a56; 
+            padding: 12px; 
+            border-radius: 8px;
+        }
+        .info-item { 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            font-size: 8.5pt; 
+            color: #2c3e50; 
+            font-weight: 600;
+        }
+        .info-line { 
+            border-bottom: 2px solid #ff9a56; 
+            flex-grow: 1; 
+            min-width: 80px; 
+            height: 18px;
+        }
+
+        /* Contextes */
+        .context-bar { 
+            border: 2px solid #667eea; 
+            padding: 10px; 
+            background: #f8f9ff;
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            margin-bottom: 12px; 
+            border-radius: 6px;
+            flex-wrap: wrap;
+        }
+        .checkbox { 
+            width: 14px; 
+            height: 14px; 
+            border: 2px solid #667eea; 
+            display: inline-block; 
+            background: white; 
+            border-radius: 3px; 
+            vertical-align: middle;
+        }
+        .context-tag { 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 6px; 
+            font-size: 7.5pt; 
+            color: #495057; 
+            background: white; 
+            padding: 5px 12px; 
+            border-radius: 20px; 
+            border: 1.5px solid #667eea; 
+            font-weight: 600;
+        }
+
+        /* Zones de notes */
+        .notes-area { 
+            border-bottom: 1.5px solid #dee2e6; 
+            height: 22px; 
+            margin-bottom: 6px;
+        }
+        .notes-section { 
+            border: 2px solid #43e97b; 
+            padding: 15px; 
+            background: #f0fff4;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+        .notes-label { 
+            font-size: 8.5pt; 
+            font-weight: 700; 
+            margin-top: 10px; 
+            display: block; 
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        /* Table stratégies */
+        .strategies-table th {
+            background: #fcb69f;
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+
+<div class="no-print">
+    <div class="nav-ribbon">
+        <div class="nav-group">
+            <span class="group-label">🧒 Maternelle</span>
+            <button class="nav-btn active" onclick="showV('mat-tsa', this)">🧩 TSA</button>
+            <button class="nav-btn" onclick="showV('mat-tdah', this)">🚀 TDAH</button>
+            <button class="nav-btn" onclick="showV('mat-dys', this)">✏️ DYS</button>
+        </div>
+        <div class="nav-group">
+            <span class="group-label">🏫 Élémentaire</span>
+            <button class="nav-btn" onclick="showV('elem-tsa', this)">🤝 TSA</button>
+            <button class="nav-btn" onclick="showV('elem-tdah', this)">⚡ TDAH</button>
+            <button class="nav-btn" onclick="showV('elem-dys', this)">📖 DYS</button>
+        </div>
+        <div style="margin-top:12px;">
+            <button onclick="window.print()" style="background: #43e97b; color: white; padding: 12px 40px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 11pt; box-shadow: 0 4px 15px rgba(67, 233, 123, 0.4); transition: all 0.3s;">✨ IMPRIMER LA FICHE</button>
+        </div>
+    </div>
+</div>
+
+<div id="app-content"></div>
+
+<script>
+const data = {
+    'mat-tsa': { title: "SUIVI MATERNELLE - PROFIL TSA 🧩", social: ["Répond à son prénom / Regard direct", "Jointure de l'attention (pointe objet)", "Imite les gestes de ses pairs (chants)", "Accepte la proximité physique", "Partage un jeu ou un objet"], auton: ["Supporte le bruit / sensoriel", "Utilise le timer / emploi du temps", "Propreté / Demande pour les toilettes", "S'habille/Se déshabille (manteau)", "Range le matériel à sa place"], envir: ["Repère son casier via le picto", "Accepte les textures (pâte, peinture)", "Respecte le sens de circulation", "Se repère dans les coins jeux", "Reste dans l'espace autorisé"], comm: ["Utilise un picto pour demander", "Comprend les consignes mimées", "S'exprime (oral, signe ou picto)", "Écoute une histoire courte", "Nomme/Montre des objets usuels"], emot: ["Absence de crises de frustration", "Utilise la zone de retrait/calme", "Réagit au renforcement visuel (+)", "Gère les transitions (signal)", "Exprime son humeur (météo)"], pedaA: ["Participation aux rimes/comptines", "Reconnaît son initiale/prénom", "Tient un outil scripteur", "Dénombre de 1 à 3", "Tri par couleur ou forme"], pedaB: ["Reste à l'activité sans s'enfuir", "Suit le déroulé visuel de la tâche", "Accepte la guidance physique", "Finit une tâche simple", "Manipule le matériel avec soin"] },
+    'mat-tdah': { title: "SUIVI MATERNELLE - PROFIL TDAH 🚀", social: ["Attend son tour de parole", "Respecte l'espace personnel", "Participe au jeu sans s'imposer", "Reste assis en regroupement", "Suit les règles d'un jeu simple"], auton: ["Finit une tâche avant de changer", "Range au signal sonore", "S'habille seul (autonomie)", "Se lave les mains correctement", "Gère son passage aux toilettes"], envir: ["Se déplace sans courir", "Respecte les limites (tapis/banc)", "Repère les zones de la classe", "Prend soin du matériel", "Se range en rang calmement"], comm: ["Écoute la consigne en entier", "Répond après réflexion", "Demande la parole (geste/mot)", "Reste sur le sujet abordé", "Raconte un événement simple"], emot: ["Gère l'excitation motrice", "Accepte de perdre ou l'échec", "Reste calme en transition", "Supporte une petite attente", "Identifie ses émotions"], pedaA: ["Graphisme (geste contrôlé)", "Attention lors d'une histoire", "Activités de tri et logique", "Motricité globale (parcours)", "Reconnaît les lettres/nombres"], pedaB: ["Mise au travail au signal", "Inhibition de l'impulsivité", "Persévérance sur l'effort", "Accepte les corrections", "Travaille sans déranger les pairs"] },
+    'mat-dys': { title: "SUIVI MATERNELLE - PROFIL DYS ✏️", social: ["Communique avec aisance", "Participe aux jeux collectifs", "Entre en relation avec l'adulte", "Aide ses camarades", "Exprime ses envies/besoins"], auton: ["Réalise les gestes du quotidien", "Organise ses affaires (casier)", "Gère son temps de collation", "Se repère dans la journée", "Demande de l'aide si besoin"], envir: ["Repérage spatial (haut/bas)", "Orientation sur la page/support", "Organisation du plan de travail", "Manipulation d'outils (ciseaux)", "Puzzle / Emboîtements"], comm: ["Articulation / Prononciation", "Construction de phrases", "Vocabulaire précis", "Compréhension de consignes", "Mémorisation de comptines"], emot: ["Confiance en soi / Estime", "Persévérance face à l'effort", "Plaisir de l'apprentissage", "Gestion de la fatigabilité", "Autonomie affective"], pedaA: ["Reconnaissance visuelle (lettres)", "Rythme et phonologie", "Graphisme (tenue crayon)", "Repérage temporel", "Motricité fine (laçage/perles)"], pedaB: ["Maintien de l'attention", "Qualité de la production", "Vitesse d'exécution", "Concentration sur la tâche", "Soin du matériel"] },
+    'elem-tsa': { title: "SUIVI ÉLÉMENTAIRE - PROFIL TSA 🤝", social: ["Initie une interaction adaptée", "Comprend l'implicite/second degré", "Collabore en travail de groupe", "Gère les conflits (médiation)", "Respecte les codes sociaux"], auton: ["Planifie son travail (check-list)", "Gère son matériel scolaire", "Utilise ses outils (ordinateur)", "Se déplace seul dans l'école", "Prend son autonomie en récré"], envir: ["Gère les distracteurs (bruit/vue)", "Se repère dans l'emploi du temps", "Adapte son ton au lieu", "Prend les infos au tableau", "Organise son classeur/cahier"], comm: ["Reformule une consigne", "Argumente une réponse", "Pose des questions pertinentes", "Écoute active de l'enseignant", "Produit un écrit structuré"], emot: ["Auto-régulation émotionnelle", "Flexibilité face à l'imprévu", "Retour au calme post-récréation", "Gestion du stress (évaluation)", "Demande une pause si besoin"], pedaA: ["Mise en mémoire des leçons", "Résolution de problèmes", "Lecture (compréhension)", "Calcul mental / Raisonnement", "Culture générale / Sciences"], pedaB: ["Attention soutenue (>15 min)", "Mise au travail immédiate", "Soin du travail écrit", "Autonomie sur tâches connues", "Vérifie son travail"] },
+    'elem-tdah': { title: "SUIVI ÉLÉMENTAIRE - PROFIL TDAH ⚡", social: ["Reste concentré en groupe", "Lève la main avant de parler", "Écoute les autres sans couper", "Gère la frustration sociale", "Respecte les règles de jeu"], auton: ["Organise son cartable", "Utilise un agenda/planner", "Gère son temps (chrono)", "Vérifie son travail seul", "Range à la fin de l'activité"], envir: ["Reste à sa place (assis)", "Respecte les déplacements", "Limite les gestes parasites", "Maintient l'ordre du bureau", "Gère le matériel sans le perdre"], comm: ["Attend son tour de parole", "Écoute une consigne longue", "Formule une demande claire", "Reste sur un sujet précis", "Répond de façon appropriée"], emot: ["Canalise son énergie", "Accepte la frustration", "Gère l'impulsivité verbale", "Reste calme en évaluation", "Demande une pause si besoin"], pedaA: ["Lecture fluide / Compréhension", "Production d'écrit (structuré)", "Résolution de problèmes", "Mémorisation (leçons)", "Application des règles"], pedaB: ["Concentration soutenue", "Qualité vs rapidité", "Finit les tâches commencées", "Respect des consignes", "Persévérance malgré l'effort"] },
+    'elem-dys': { title: "SUIVI ÉLÉMENTAIRE - PROFIL DYS 📖", social: ["Communication fluide", "Travail de groupe efficace", "Relation adulte/pairs positive", "Entraide et coopération", "Expression de ses besoins"], auton: ["Organisation matérielle", "Gestion du temps scolaire", "Utilisation d'outils adaptés", "Anticipation des tâches", "Demande d'aide appropriée"], envir: ["Repérage spatio-temporel", "Orientation sur supports", "Rangement et classement", "Manipulation d'outils", "Adaptation à l'espace classe"], comm: ["Articulation / Parole claire", "Construction syntaxique", "Vocabulaire riche et précis", "Compréhension orale", "Expression écrite"], emot: ["Confiance en ses capacités", "Gestion de l'échec", "Motivation pour apprendre", "Gestion de la fatigue", "Autonomie émotionnelle"], pedaA: ["Lecture (déchiffrage/compréhension)", "Orthographe / Grammaire", "Mathématiques (calcul/géométrie)", "Copie / Transcription", "Mémorisation des leçons"], pedaB: ["Qualité du travail écrit", "Vitesse d'exécution", "Concentration maintenue", "Soin et présentation", "Vérification autonome"] }
+};
+
+function renderRows(items) {
+    return items.map(item => `
+        <tr>
+            <td class="col-obs">${item}</td>
+            <td class="col-check"><div class="checkbox-cell"></div></td>
+            <td class="col-check"><div class="checkbox-cell"></div></td>
+            <td class="col-check"><div class="checkbox-cell"></div></td>
+            <td class="col-notes"></td>
+        </tr>
+    `).join('');
+}
+
+function generateHTML(key) {
+    const d = data[key];
+    return `<div class="variant active">
+        <div class="page-container">
+            <h1>${d.title}</h1>
+            <div class="dev-line">Développement Damien PETITEAUX - Jura 2026 - Académie de Besançon</div>
+            
+            <div class="info-grid">
+                <div class="info-item">👤 Élève : <div class="info-line"></div></div>
+                <div class="info-item">📅 Période du <div class="info-line" style="max-width:60px;"></div> au <div class="info-line" style="max-width:60px;"></div></div>
+                <div class="info-item">🏫 École : <div class="info-line"></div></div>
+                <div class="info-item">🤝 AESH : <div class="info-line"></div></div>
+            </div>
+
+            <div class="context-bar">
+                <strong style="font-size:8.5pt; color:#495057; font-weight:700;">🎨 Contextes :</strong> 
+                <span class="context-tag"><div class="checkbox"></div> Accueil</span>
+                <span class="context-tag"><div class="checkbox"></div> Classe</span>
+                <span class="context-tag"><div class="checkbox"></div> Regroupement</span>
+                <span class="context-tag"><div class="checkbox"></div> Récré/Cantine</span>
+                <span class="context-tag"><div class="checkbox"></div> 🚌 Sortie</span>
+            </div>
+
+            <table>
+                <tr><td colspan="5" class="domain-header domain-social">🤝 1. SOCIALISATION</td></tr>
+                <tr><th class="col-obs">Observations</th><th class="col-check">OUI</th><th class="col-check">PARF</th><th class="col-check">NON</th><th class="col-notes">Notes</th></tr>
+                ${renderRows(d.social)}
+            </table>
+
+            <table>
+                <tr><td colspan="5" class="domain-header domain-auton">🧘 2. AUTONOMIE & QUOTIDIEN</td></tr>
+                <tr><th class="col-obs">Observations</th><th class="col-check">OUI</th><th class="col-check">PARF</th><th class="col-check">NON</th><th class="col-notes">Notes</th></tr>
+                ${renderRows(d.auton)}
+            </table>
+
+            <table>
+                <tr><td colspan="5" class="domain-header domain-envir">📍 3. ENVIRONNEMENT & REPÉRAGE</td></tr>
+                <tr><th class="col-obs">Observations</th><th class="col-check">OUI</th><th class="col-check">PARF</th><th class="col-check">NON</th><th class="col-notes">Notes</th></tr>
+                ${renderRows(d.envir)}
+            </table>
+
+            <table>
+                <tr><td colspan="5" class="domain-header domain-comm">💬 4. COMMUNICATION & LANGAGE</td></tr>
+                <tr><th class="col-obs">Observations</th><th class="col-check">OUI</th><th class="col-check">PARF</th><th class="col-check">NON</th><th class="col-notes">Notes</th></tr>
+                ${renderRows(d.comm)}
+            </table>
+
+            <table>
+                <tr><td colspan="5" class="domain-header domain-emot">🌈 5. COMPORTEMENT & ÉMOTIONS</td></tr>
+                <tr><th class="col-obs">Observations</th><th class="col-check">OUI</th><th class="col-check">PARF</th><th class="col-check">NON</th><th class="col-notes">Notes</th></tr>
+                ${renderRows(d.emot)}
+            </table>
+        </div>
+
+        <div class="page-break"></div>
+
+        <div class="page-container">
+            <h1>📊 SUITE & SYNTHÈSE PÉDAGOGIQUE</h1>
+            <div class="dev-line">Développement Damien PETITEAUX - Jura 2026 - Académie de Besançon</div>
+            
+            <table>
+                <tr><td colspan="5" class="domain-header domain-peda">📚 6. TRAVAIL PÉDAGOGIQUE</td></tr>
+                <tr><td colspan="5" class="sub-domain-header">A. Acquisitions & Apprentissages</td></tr>
+                <tr><th class="col-obs">Observations scolaires</th><th class="col-check">OUI</th><th class="col-check">PARF</th><th class="col-check">NON</th><th class="col-notes">Notes pédagogiques</th></tr>
+                ${renderRows(d.pedaA)}
+                <tr><td colspan="5" class="sub-domain-header">B. Engagement & Implication</td></tr>
+                <tr><th class="col-obs">Observations</th><th class="col-check">OUI</th><th class="col-check">PARF</th><th class="col-check">NON</th><th class="col-notes">Notes</th></tr>
+                ${renderRows(d.pedaB)}
+            </table>
+
+            <table class="strategies-table">
+                <tr><td colspan="2" class="sub-domain-header">💡 C. Stratégies et Aménagements</td></tr>
+                <tr><th style="width:45%;">Mise en œuvre</th><th>Efficacité / Observations</th></tr>
+                <tr><td>Adaptations supports (visuel/police)</td><td></td></tr>
+                <tr><td>Matériel spécifique ou numérique</td><td></td></tr>
+                <tr><td>Renforcements positifs</td><td></td></tr>
+                <tr><td>Gestion du temps (pauses)</td><td></td></tr>
+                <tr><td>Autres adaptations</td><td></td></tr>
+            </table>
+
+            <div class="notes-section">
+                <h3 style="margin:0 0 12px 0; font-size:11pt; color:#43e97b; text-transform:uppercase; font-weight:700;">🌟 BILAN DE LA PÉRIODE</h3>
+                <span class="notes-label" style="color:#43e97b;">🌻 Réussites et Points Positifs :</span>
+                <div class="notes-area"></div>
+                <div class="notes-area"></div>
+                <span class="notes-label" style="color:#ff9a56;">🌈 Défis à Relever Ensemble :</span>
+                <div class="notes-area"></div>
+                <div class="notes-area"></div>
+                <span class="notes-label" style="color:#667eea;">🚀 Perspectives et Objectifs :</span>
+                <div class="notes-area"></div>
+                <div class="notes-area"></div>
+            </div>
+            <div style="margin-top:20px; font-size:7pt; text-align:right; font-style:italic; color:#7f8c8d;">
+                Fiche de suivi AESH • Académie de Besançon • ${new Date().toLocaleDateString('fr-FR')}
+            </div>
+        </div>
+    </div>`;
+}
+
+function showV(key, btn) {
+    document.getElementById('app-content').innerHTML = generateHTML(key);
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+}
+
+showV('mat-tsa', document.querySelector('.nav-btn'));
+</script>
+</body>
+</html>
