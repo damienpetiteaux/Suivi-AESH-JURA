@@ -1,16 +1,22 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Grille Suivi AESH - Version Professionnelle</title>
+    <title>Grille Suivi AESH - Version Professionnelle Interactive</title>
+    <!-- Librairie pour l'export JPEG -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
+        /* Paramètres d'impression forcés via CSS */
         @page { size: A4; margin: 8mm; }
         @media print {
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
             .no-print { display: none !important; }
             .variant { display: none; }
             .variant.active { display: block; }
-            .page-container { box-shadow: none; margin: 0; border: none; padding: 0; }
+            .page-container { box-shadow: none; margin: 0; border: none; padding: 0; width: 100%; max-width: 194mm; }
             .page-break { page-break-before: always; }
         }
 
@@ -74,6 +80,13 @@
         .nav-btn:hover { 
             background: #f8f9fa;
             transform: translateY(-1px);
+        }
+
+        .action-buttons {
+            margin-top: 12px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
         }
 
         .page-container { 
@@ -179,16 +192,20 @@
             background: #fafbfc;
             padding: 4px 2px !important;
             vertical-align: middle;
+            cursor: pointer;
         }
         
         .checkbox-cell { 
             width: 16px; 
             height: 16px; 
             border: 2px solid #495057; 
-            display: inline-block; 
+            display: flex; 
+            justify-content: center;
+            align-items: center;
             background: white; 
             border-radius: 3px;
             margin: 0 auto;
+            pointer-events: none; /* Let the parent <td> handle the click */
         }
         .col-notes { 
             width: auto; 
@@ -220,6 +237,8 @@
             flex-grow: 1; 
             min-width: 80px; 
             height: 18px;
+            padding: 0 5px;
+            white-space: nowrap;
         }
 
         /* Contextes */
@@ -238,10 +257,11 @@
             width: 14px; 
             height: 14px; 
             border: 2px solid #667eea; 
-            display: inline-block; 
+            display: flex; 
+            justify-content: center;
+            align-items: center;
             background: white; 
             border-radius: 3px; 
-            vertical-align: middle;
         }
         .context-tag { 
             display: inline-flex; 
@@ -254,13 +274,16 @@
             border-radius: 20px; 
             border: 1.5px solid #667eea; 
             font-weight: 600;
+            cursor: pointer;
         }
 
-        /* Zones de notes */
+        /* Zones de notes et styles d'édition */
         .notes-area { 
             border-bottom: 1.5px solid #dee2e6; 
-            height: 22px; 
+            min-height: 22px; 
             margin-bottom: 6px;
+            padding: 2px 5px;
+            word-wrap: break-word;
         }
         .notes-section { 
             border: 2px solid #43e97b; 
@@ -283,6 +306,38 @@
             background: #fcb69f;
             color: #2c3e50;
         }
+
+        /* Styles pour les éléments modifiables (feedback visuel) */
+        [contenteditable="true"] {
+            outline: none;
+            cursor: text;
+            transition: background 0.2s;
+        }
+        [contenteditable="true"]:focus, [contenteditable="true"]:hover {
+            background-color: rgba(255, 236, 210, 0.4);
+            border-radius: 3px;
+        }
+
+        /* Modal Impression */
+        .modal-overlay {
+            display: none; 
+            position: fixed; 
+            top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.6); 
+            z-index: 9999; 
+            justify-content: center; 
+            align-items: center;
+            backdrop-filter: blur(3px);
+        }
+        .modal-box {
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            max-width: 500px; 
+            text-align: center; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+            font-size: 11pt;
+        }
     </style>
 </head>
 <body>
@@ -301,9 +356,27 @@
             <button class="nav-btn" onclick="showV('elem-tdah', this)">⚡ TDAH</button>
             <button class="nav-btn" onclick="showV('elem-dys', this)">📖 DYS</button>
         </div>
-        <div style="margin-top:12px;">
-            <button onclick="window.print()" style="background: #43e97b; color: white; padding: 12px 40px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 11pt; box-shadow: 0 4px 15px rgba(67, 233, 123, 0.4); transition: all 0.3s;">✨ IMPRIMER LA FICHE</button>
+        <div class="action-buttons">
+            <button onclick="showPrintModal()" style="background: #43e97b; color: white; padding: 12px 30px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 10pt; box-shadow: 0 4px 15px rgba(67, 233, 123, 0.4); transition: all 0.3s;">✨ IMPRIMER LA FICHE</button>
+            <button onclick="saveAsJPEG()" style="background: #4facfe; color: white; padding: 12px 30px; border: none; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 10pt; box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4); transition: all 0.3s;">💾 ENREGISTRER EN JPEG</button>
         </div>
+    </div>
+</div>
+
+<!-- Modal pour les consignes d'impression -->
+<div id="printModal" class="modal-overlay">
+    <div class="modal-box">
+        <h2 style="color:#667eea; margin-top:0;">🖨️ Paramètres d'impression recommandés</h2>
+        <p style="color:#2c3e50; text-align:left; line-height:1.5;">Pour un résultat optimal, veuillez vérifier les paramètres suivants dans la fenêtre système qui va s'ouvrir :</p>
+        <ul style="color:#495057; text-align:left; line-height:1.6; margin-bottom:25px; background:#f8f9ff; padding:15px 35px; border-radius:8px; border:1px solid #e0e6ed;">
+            <li><strong>Format de papier :</strong> A4</li>
+            <li><strong>Qualité :</strong> 600 DPI (selon l'imprimante)</li>
+            <li><strong>Échelle :</strong> Par défaut (100%)</li>
+            <li><strong>En-têtes et pieds de page :</strong> Cochés</li>
+            <li><strong>Graphiques d'arrière-plan :</strong> Cochés</li>
+        </ul>
+        <button onclick="proceedToPrint()" style="background:#43e97b; color:white; border:none; padding:12px 25px; font-size:11pt; font-weight:bold; border-radius:6px; cursor:pointer; box-shadow: 0 4px 10px rgba(67, 233, 123, 0.3);">J'ai compris, Imprimer</button>
+        <button onclick="closePrintModal()" style="background:#e9ecef; color:#495057; border:none; padding:12px 25px; font-size:11pt; font-weight:bold; border-radius:6px; cursor:pointer; margin-left:10px;">Annuler</button>
     </div>
 </div>
 
@@ -319,14 +392,39 @@ const data = {
     'elem-dys': { title: "SUIVI ÉLÉMENTAIRE - PROFIL DYS 📖", social: ["Communication fluide", "Travail de groupe efficace", "Relation adulte/pairs positive", "Entraide et coopération", "Expression de ses besoins"], auton: ["Organisation matérielle", "Gestion du temps scolaire", "Utilisation d'outils adaptés", "Anticipation des tâches", "Demande d'aide appropriée"], envir: ["Repérage spatio-temporel", "Orientation sur supports", "Rangement et classement", "Manipulation d'outils", "Adaptation à l'espace classe"], comm: ["Articulation / Parole claire", "Construction syntaxique", "Vocabulaire riche et précis", "Compréhension orale", "Expression écrite"], emot: ["Confiance en ses capacités", "Gestion de l'échec", "Motivation pour apprendre", "Gestion de la fatigue", "Autonomie émotionnelle"], pedaA: ["Lecture (déchiffrage/compréhension)", "Orthographe / Grammaire", "Mathématiques (calcul/géométrie)", "Copie / Transcription", "Mémorisation des leçons"], pedaB: ["Qualité du travail écrit", "Vitesse d'exécution", "Concentration maintenue", "Soin et présentation", "Vérification autonome"] }
 };
 
+// Fonction de bascule des cases à cocher dans les tableaux avec couleurs spécifiques
+function toggleCheck(cell, type) {
+    const row = cell.parentElement;
+    const cb = cell.querySelector('.checkbox-cell');
+    const isChecked = cb.innerHTML !== '';
+
+    // Décocher toutes les cases de la même ligne (comportement radio)
+    row.querySelectorAll('.checkbox-cell').forEach(c => c.innerHTML = '');
+
+    if (!isChecked) {
+        let color = type === 'oui' ? '#43e97b' : type === 'parf' ? '#ff9a56' : '#f5576c';
+        cb.innerHTML = `<span style="color:${color}; font-weight:bold; font-size:14px; line-height:1;">✗</span>`;
+    }
+}
+
+// Fonction de bascule pour les tags "Contextes"
+function toggleContext(element) {
+    const cb = element.querySelector('.checkbox');
+    if (cb.innerHTML === '') {
+        cb.innerHTML = `<span style="color:#667eea; font-weight:bold; font-size:12px; line-height:1;">✗</span>`;
+    } else {
+        cb.innerHTML = '';
+    }
+}
+
 function renderRows(items) {
     return items.map(item => `
         <tr>
             <td class="col-obs">${item}</td>
-            <td class="col-check"><div class="checkbox-cell"></div></td>
-            <td class="col-check"><div class="checkbox-cell"></div></td>
-            <td class="col-check"><div class="checkbox-cell"></div></td>
-            <td class="col-notes"></td>
+            <td class="col-check" onclick="toggleCheck(this, 'oui')"><div class="checkbox-cell"></div></td>
+            <td class="col-check" onclick="toggleCheck(this, 'parf')"><div class="checkbox-cell"></div></td>
+            <td class="col-check" onclick="toggleCheck(this, 'non')"><div class="checkbox-cell"></div></td>
+            <td class="col-notes" contenteditable="true" placeholder="Saisir note..."></td>
         </tr>
     `).join('');
 }
@@ -334,29 +432,29 @@ function renderRows(items) {
 function generateHTML(key) {
     const d = data[key];
     return `<div class="variant active">
-        <div class="page-container">
+        <div class="page-container" id="page-content-1">
             <h1>${d.title}</h1>
             <div class="dev-line">Développement Damien PETITEAUX - Jura 2026 - Académie de Besançon</div>
             
             <div class="info-grid">
-                <div class="info-item">👤 Élève : <div class="info-line"></div></div>
-                <div class="info-item">📅 Période du <div class="info-line" style="max-width:60px;"></div> au <div class="info-line" style="max-width:60px;"></div></div>
-                <div class="info-item">🏫 École : <div class="info-line"></div></div>
-                <div class="info-item">🤝 AESH : <div class="info-line"></div></div>
+                <div class="info-item">👤 Élève : <div class="info-line" contenteditable="true"></div></div>
+                <div class="info-item">📅 Période du <div class="info-line" style="max-width:60px;" contenteditable="true"></div> au <div class="info-line" style="max-width:60px;" contenteditable="true"></div></div>
+                <div class="info-item">🏫 École : <div class="info-line" contenteditable="true"></div></div>
+                <div class="info-item">🤝 AESH : <div class="info-line" contenteditable="true"></div></div>
             </div>
 
             <div class="context-bar">
                 <strong style="font-size:8.5pt; color:#495057; font-weight:700;">🎨 Contextes :</strong> 
-                <span class="context-tag"><div class="checkbox"></div> Accueil</span>
-                <span class="context-tag"><div class="checkbox"></div> Classe</span>
-                <span class="context-tag"><div class="checkbox"></div> Regroupement</span>
-                <span class="context-tag"><div class="checkbox"></div> Récré/Cantine</span>
-                <span class="context-tag"><div class="checkbox"></div> 🚌 Sortie</span>
+                <span class="context-tag" onclick="toggleContext(this)"><div class="checkbox"></div> Accueil</span>
+                <span class="context-tag" onclick="toggleContext(this)"><div class="checkbox"></div> Classe</span>
+                <span class="context-tag" onclick="toggleContext(this)"><div class="checkbox"></div> Regroupement</span>
+                <span class="context-tag" onclick="toggleContext(this)"><div class="checkbox"></div> Récré/Cantine</span>
+                <span class="context-tag" onclick="toggleContext(this)"><div class="checkbox"></div> 🚌 Sortie</span>
             </div>
 
             <table>
                 <tr><td colspan="5" class="domain-header domain-social">🤝 1. SOCIALISATION</td></tr>
-                <tr><th class="col-obs">Observations</th><th class="col-check">OUI</th><th class="col-check">PARF</th><th class="col-check">NON</th><th class="col-notes">Notes</th></tr>
+                <tr><th class="col-obs">Observations</th><th class="col-check" title="OUI">OUI</th><th class="col-check" title="PARFOIS">PARF</th><th class="col-check" title="NON">NON</th><th class="col-notes">Notes</th></tr>
                 ${renderRows(d.social)}
             </table>
 
@@ -387,7 +485,7 @@ function generateHTML(key) {
 
         <div class="page-break"></div>
 
-        <div class="page-container">
+        <div class="page-container" id="page-content-2">
             <h1>📊 SUITE & SYNTHÈSE PÉDAGOGIQUE</h1>
             <div class="dev-line">Développement Damien PETITEAUX - Jura 2026 - Académie de Besançon</div>
             
@@ -404,24 +502,24 @@ function generateHTML(key) {
             <table class="strategies-table">
                 <tr><td colspan="2" class="sub-domain-header">💡 C. Stratégies et Aménagements</td></tr>
                 <tr><th style="width:45%;">Mise en œuvre</th><th>Efficacité / Observations</th></tr>
-                <tr><td>Adaptations supports (visuel/police)</td><td></td></tr>
-                <tr><td>Matériel spécifique ou numérique</td><td></td></tr>
-                <tr><td>Renforcements positifs</td><td></td></tr>
-                <tr><td>Gestion du temps (pauses)</td><td></td></tr>
-                <tr><td>Autres adaptations</td><td></td></tr>
+                <tr><td>Adaptations supports (visuel/police)</td><td contenteditable="true"></td></tr>
+                <tr><td>Matériel spécifique ou numérique</td><td contenteditable="true"></td></tr>
+                <tr><td>Renforcements positifs</td><td contenteditable="true"></td></tr>
+                <tr><td>Gestion du temps (pauses)</td><td contenteditable="true"></td></tr>
+                <tr><td>Autres adaptations</td><td contenteditable="true"></td></tr>
             </table>
 
             <div class="notes-section">
                 <h3 style="margin:0 0 12px 0; font-size:11pt; color:#43e97b; text-transform:uppercase; font-weight:700;">🌟 BILAN DE LA PÉRIODE</h3>
                 <span class="notes-label" style="color:#43e97b;">🌻 Réussites et Points Positifs :</span>
-                <div class="notes-area"></div>
-                <div class="notes-area"></div>
+                <div class="notes-area" contenteditable="true"></div>
+                <div class="notes-area" contenteditable="true"></div>
                 <span class="notes-label" style="color:#ff9a56;">🌈 Défis à Relever Ensemble :</span>
-                <div class="notes-area"></div>
-                <div class="notes-area"></div>
+                <div class="notes-area" contenteditable="true"></div>
+                <div class="notes-area" contenteditable="true"></div>
                 <span class="notes-label" style="color:#667eea;">🚀 Perspectives et Objectifs :</span>
-                <div class="notes-area"></div>
-                <div class="notes-area"></div>
+                <div class="notes-area" contenteditable="true"></div>
+                <div class="notes-area" contenteditable="true"></div>
             </div>
             <div style="margin-top:20px; font-size:7pt; text-align:right; font-style:italic; color:#7f8c8d;">
                 Fiche de suivi AESH • Académie de Besançon • ${new Date().toLocaleDateString('fr-FR')}
@@ -436,6 +534,45 @@ function showV(key, btn) {
     btn.classList.add('active');
 }
 
+// Logique pour la modale d'impression
+function showPrintModal() {
+    document.getElementById('printModal').style.display = 'flex';
+}
+function closePrintModal() {
+    document.getElementById('printModal').style.display = 'none';
+}
+function proceedToPrint() {
+    closePrintModal();
+    window.print();
+}
+
+// Logique pour l'export JPEG
+function saveAsJPEG() {
+    // Changement du curseur pour indiquer le chargement
+    document.body.style.cursor = 'wait';
+    
+    // On cible le conteneur principal à exporter
+    const element = document.getElementById('app-content');
+    
+    html2canvas(element, { 
+        scale: 2, // Haute qualité
+        backgroundColor: "#e8ecf1",
+        useCORS: true 
+    }).then(canvas => {
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const link = document.createElement('a');
+        link.download = 'Grille_Suivi_AESH_' + new Date().toISOString().slice(0,10) + '.jpg';
+        link.href = imgData;
+        link.click();
+        document.body.style.cursor = 'default';
+    }).catch(err => {
+        console.error("Erreur lors de la capture JPEG :", err);
+        alert("Une erreur est survenue lors de la création de l'image JPEG.");
+        document.body.style.cursor = 'default';
+    });
+}
+
+// Initialisation au chargement
 showV('mat-tsa', document.querySelector('.nav-btn'));
 </script>
 </body>
